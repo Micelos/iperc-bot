@@ -1,25 +1,19 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, Response
 
 app = Flask(__name__)
 
-@app.route('/webhook', methods=['POST'])
+@app.route("/webhook", methods=["POST"])
 def webhook():
-    try:
-        # Twilio envía datos en formato x-www-form-urlencoded
-        message = request.form.get("Body")  # Obtiene el mensaje de WhatsApp
-        sender = request.form.get("From")  # Obtiene el número de quien envió el mensaje
+    # Recibir datos de Twilio
+    incoming_msg = request.form.get("Body", "").strip()
 
-        if not message or not sender:
-            return jsonify({"error": "Datos incompletos"}), 400
+    # Respuesta en XML (TwiML)
+    response_xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+    <Response>
+        <Message>Recibido: {incoming_msg}</Message>
+    </Response>"""
 
-        print(f"📩 Mensaje recibido de {sender}: {message}")
+    return Response(response_xml, mimetype="text/xml")
 
-        # Respuesta a Twilio
-        return jsonify({"status": "success"}), 200
-
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
