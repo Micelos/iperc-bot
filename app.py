@@ -5,12 +5,21 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     try:
-        data = request.get_json()  # Asegura que Flask reciba JSON
-        print("Datos recibidos:", data)
-        return jsonify({"status": "OK"}), 200  # Respuesta en formato JSON
+        # Twilio envía datos en formato x-www-form-urlencoded
+        message = request.form.get("Body")  # Obtiene el mensaje de WhatsApp
+        sender = request.form.get("From")  # Obtiene el número de quien envió el mensaje
+
+        if not message or not sender:
+            return jsonify({"error": "Datos incompletos"}), 400
+
+        print(f"📩 Mensaje recibido de {sender}: {message}")
+
+        # Respuesta a Twilio
+        return jsonify({"status": "success"}), 200
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 400  # Manejo de errores
+        print(f"❌ Error: {e}")
+        return jsonify({"error": str(e)}), 500
 
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
-
+if __name__ == '__main__':
+    app.run(debug=True)
